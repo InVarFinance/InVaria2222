@@ -1,0 +1,22 @@
+{
+  "name": "invarianft",
+  "version": "1.0.0",
+  "description": "D:\\InvariaNFT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/invaria/InvariaNFT.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/invaria/InvariaNFT/issues"
+  },
+  "homepage": "https://github.com/invaria/InvariaNFT#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0"
+  }
+}
