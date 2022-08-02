@@ -6,126 +6,189 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-interface BurnFunction{
-    function BurnInVariaNFT(address burnTokenAddress,uint256 burnValue)external;
+interface BurnFunction {
+    function BurnInVariaNFT(address burnTokenAddress, uint256 burnValue) external;
 }
 
-contract InVariaStaking is Ownable,ReentrancyGuard{
+contract InVariaStaking is Ownable, ReentrancyGuard {
     BurnFunction public InVariaNFTBurn;
     IERC1155 public InVariaNFT;
     IERC20 public USDC;
 
     address public WithDrawAddress = 0xAcB683ba69202c5ae6a3B9b9b191075295b1c41C;
 
-    struct StakingInfo{
-        uint256 staketime;
+    struct StakingInfo {
         uint256 stakeNFTamount;
+        uint256 leftToUnstakeNFTamount;
+        uint256 staketime;
+        uint256 unstaketime;
+        bool isUnstake;
     }
 
-    mapping(address => StakingInfo) public stakingInfo;
-    mapping(address => uint256) private ClaimAmount;
+    struct BurningInfo {
+        uint256 burnableNFTamount;
+        uint256 leftToBurnNFTamount;
+        uint256 locktime;
+        bool isBurn;
+    }
 
-    uint256 private unlockTime;
-    uint256 private AprByMin = 1200 * 1e6;
+    struct NftBalance {
+        uint256 stakingAmount;
+        uint256 burnableAmount;
+    }
+
+    mapping(address => StakingInfo[]) public stakingInfo;
+    mapping(address => BurningInfo[]) public burningInfo;
+    mapping(address => NftBalance) public nftBalance;
+    mapping(address => uint256) public ClaimAmount;
+
+    uint256 public AprByMin = 1200 * 1e6;
     uint256 private BurnReturn = 10000 * 1e6;
+    uint256 public YearInSeconds = 31536000;
 
-    bool public BurnStart = false;
-
-    constructor(address inVaria,address usdc){
-       InVariaNFT =  IERC1155(inVaria);
-       InVariaNFTBurn = BurnFunction(inVaria);
-       USDC = IERC20(usdc);
-
-       unlockTime = block.timestamp;
+    constructor(address inVaria, address usdc) {
+        InVariaNFT = IERC1155(inVaria);
+        InVariaNFTBurn = BurnFunction(inVaria);
+        USDC = IERC20(usdc);
     }
-
 
     //view function
-    function USDC_Balance() public view returns(uint256){
+    function USDC_Balance() public view returns (uint256) {
         return USDC.balanceOf(address(this));
     }
 
     // only Owner
-     function setAddress(address inVaria,address usdc)external onlyOwner{
+    function setAddress(address inVaria, address usdc) external onlyOwner {
         InVariaNFTBurn = BurnFunction(inVaria);
         InVariaNFT = IERC1155(inVaria);
         USDC = IERC20(usdc);
     }
 
-    function withDrawUSDC(uint256 bal)external onlyOwner{
-        USDC.transfer(owner(),bal * 1e6);
+    function withDrawUSDC(uint256 bal) external onlyOwner {
+        USDC.transfer(owner(), bal * 1e6);
     }
 
-
-    function BurnStartSet(bool set)external onlyOwner{
-        BurnStart = set;
-    }
-
-    //excute function
-
+    //execute function
     function InputUSDC(uint256 balance) external {
-        USDC.transferFrom(msg.sender,address(this),balance * 1e6);
+        USDC.transferFrom(msg.sender, address(this), balance * 1e6);
     }
 
+    function stakeNFT(uint256 bal) external {
+        require(InVariaNFT.balanceOf(msg.sender, 1) >= bal, "Invalid input balance");
+        require(bal > 0, "Can't stake zero");
 
-    function stakeNFT(uint256 bal)external{
-        require(InVariaNFT.balanceOf(msg.sender, 1) >= bal ,"Invalid input balance");
-        require(bal > 0 ,"Can't stake zero");
+        InVariaNFT.safeTransferFrom(msg.sender, address(this), 1, bal, "");
+        uint256 startTime = block.timestamp;
+        stakingInfo[msg.sender].push(StakingInfo(bal, bal, startTime, startTime, false));
+        nftBalance[msg.sender].stakingAmount += bal;
+        updateBurningInfo(bal, startTime + YearInSeconds, msg.sender, nftBalance[msg.sender]);
+    }
+
+    function updateBurningInfo(uint256 bal, uint256 locktime,
+        address stakingAddress, NftBalance storage customerBalance) internal {
+        if (customerBalance.burnableAmount == 0) {
+            burningInfo[stakingAddress].push(BurningInfo(bal, bal, locktime, false));
+            customerBalance.burnableAmount = bal;
+        } else if (customerBalance.stakingAmount > 
+            customerBalance.burnableAmount) {
+            uint256 burnableBalance = 
+                customerBalance.stakingAmount - 
+                customerBalance.burnableAmount;
+
+            burningInfo[stakingAddress].push(BurningInfo(burnableBalance, burnableBalance, locktime, false));
+            customerBalance.burnableAmount += burnableBalance;
+        }
+    }
+
+    function unStake(uint256 unstakeAmount) external nonReentrant {
+        require(unstakeAmount > 0, "Invalid unstake amount");
+        require(nftBalance[msg.sender].stakingAmount >= unstakeAmount, "You don't have enough staking NFTs");
+        uint256 leftToUnstakeAmount = unstakeAmount;
+        uint256 unstakeTime = block.timestamp;
+
         ClaimAmount[msg.sender] += StakingReward_Balance(msg.sender);
+        for (uint256 i = 0; i < stakingInfo[msg.sender].length; i++) {
+            if (stakingInfo[msg.sender][i].isUnstake) continue;
+            if (leftToUnstakeAmount == 0) break;
 
-        InVariaNFT.safeTransferFrom(msg.sender, address(this), 1, bal ,'');
-        stakingInfo[msg.sender].stakeNFTamount += bal;
-        stakingInfo[msg.sender].staketime = block.timestamp;
-
+            StakingInfo storage stakeRecord = stakingInfo[msg.sender][i];
+            if (leftToUnstakeAmount >= stakeRecord.leftToUnstakeNFTamount) {
+                leftToUnstakeAmount -= stakeRecord.leftToUnstakeNFTamount;
+                stakeRecord.leftToUnstakeNFTamount = 0;
+                stakeRecord.isUnstake = true;
+            } else {
+                stakeRecord.leftToUnstakeNFTamount -= leftToUnstakeAmount;
+                leftToUnstakeAmount = 0;
+            }
+            stakeRecord.unstaketime = unstakeTime;
+        }
+        
+        nftBalance[msg.sender].stakingAmount -= unstakeAmount;
+        InVariaNFT.safeTransferFrom(address(this), msg.sender, 1, unstakeAmount, "");
     }
 
-    function unStake(uint256 bal) external nonReentrant{
-        require(stakingInfo[msg.sender].stakeNFTamount >= bal,"You have not enought NFT staking");
-         require(bal > 0 ,"Can't unstake zero");
-        InVariaNFT.safeTransferFrom(address(this),msg.sender,1,bal,'');
-
-        ClaimAmount[msg.sender] += StakingReward_Balance(msg.sender);
-
-        stakingInfo[msg.sender].stakeNFTamount -= bal;
-        stakingInfo[msg.sender].staketime = block.timestamp;
-
-    }
-
-
-    function withDraw() external nonReentrant{
-
+    function withDraw() external nonReentrant {
         uint256 claimAmount = CheckClaimValue(msg.sender);
-        require(claimAmount > 0 ,"You can't claim");
+        require(claimAmount > 0, "You can't claim");
+        uint256 updateStakingTime = block.timestamp;
 
-        stakingInfo[msg.sender].staketime = block.timestamp;
+        for (uint256 i = 0; i < stakingInfo[msg.sender].length; i++) {
+            if (!stakingInfo[msg.sender][i].isUnstake) {
+                stakingInfo[msg.sender][i].unstaketime = updateStakingTime;
+            }
+        }
 
         ClaimAmount[msg.sender] = 0;
-
-        USDC.transfer(msg.sender,claimAmount);
-
+        USDC.transfer(msg.sender, claimAmount);
     }
 
-    function BurnNFT(uint256 amount)external{
-        require(InVariaNFT.balanceOf(msg.sender, 1) >= amount ,"Invalid input balance");
-        require(BurnStart && amount > 0,"Burn not start yet");
-        InVariaNFTBurn.BurnInVariaNFT(msg.sender,amount);
+    function BurnNFT(uint256 burnAmount) external {
+        require(burnAmount > 0, "Invalid input balance");
+        require(InVariaNFT.balanceOf(msg.sender, 1) >= burnAmount, "Invalid input balance");
+        uint256 leftToBurnAmount = burnAmount;
 
-        USDC.transfer(msg.sender,BurnReturn * amount);
+        for (uint256 i = 0; i < burningInfo[msg.sender].length; i++) {
+            if (leftToBurnAmount == 0) break;
+            BurningInfo storage burnRecord = burningInfo[msg.sender][i];
+            require(block.timestamp > (burnRecord.locktime), "Unlock time is coming soon");
+            if (burnRecord.isBurn) continue;
+
+            if (leftToBurnAmount >= burnRecord.leftToBurnNFTamount) {
+                leftToBurnAmount -= burnRecord.leftToBurnNFTamount;
+                burnRecord.leftToBurnNFTamount = 0;
+                burnRecord.isBurn = true;
+            } else {
+                burnRecord.leftToBurnNFTamount -= leftToBurnAmount;
+                leftToBurnAmount = 0;
+            }
+        }
+
+        nftBalance[msg.sender].burnableAmount -= burnAmount;
+        InVariaNFTBurn.BurnInVariaNFT(msg.sender, burnAmount);
+        USDC.transfer(msg.sender, BurnReturn * burnAmount);
     }
 
+    function StakingReward_Balance(address stakingAddress) 
+        public 
+        view 
+        returns (uint256) 
+    {
+        uint256 balance = 0;
 
+        for (uint256 i = 0; i < stakingInfo[stakingAddress].length; i++) {
+            StakingInfo memory stakeRecord = stakingInfo[stakingAddress][i];
+            if (stakeRecord.isUnstake) continue;
 
-    // count Reward
-    function StakingReward_Balance(address stakingAddress)public view returns(uint256){
-        uint256 balance = stakingInfo[stakingAddress].stakeNFTamount * (block.timestamp - stakingInfo[stakingAddress].staketime) * (AprByMin/31536000);
+            balance += stakeRecord.leftToUnstakeNFTamount *
+                (block.timestamp - stakeRecord.unstaketime) *
+                (AprByMin / YearInSeconds);
+        }
+
         return balance;
     }
 
-    function CheckClaimValue(address user)public view returns(uint256){
+    function CheckClaimValue(address user) public view returns (uint256) {
         uint256 claimAmount = StakingReward_Balance(user) + ClaimAmount[user];
         return claimAmount;
     }
-
-
-
 }
