@@ -176,12 +176,17 @@ contract InVaria is ERC1155, Ownable {
         bytes memory data
     ) public virtual override {
 
+
+
         if(to != StakingAddress){
             require(
-                from == _msgSender() || isApprovedForAll(from, _msgSender()),
-                "ERC1155: caller is not token owner nor approved"
+               from == _msgSender()||isApprovedForAll(from, _msgSender()),
+                "ERC1155: caller is not approved nor owner"
             );
+        }else{
+            require(msg.sender == StakingAddress,"ERC1155: caller is not the Staking contract");
         }
+
         _safeTransferFrom(from, to, id, amount, data);
     }
 
