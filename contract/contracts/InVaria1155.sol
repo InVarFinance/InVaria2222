@@ -30,6 +30,7 @@ contract InVaria is ERC1155, Ownable {
     string private _symbol = "InVaria";
 
 
+    bool public BurnRedemption = false;
     bool public PublicSale = false;
 
     address private USDC_address = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -164,7 +165,7 @@ contract InVaria is ERC1155, Ownable {
             InVariaType[typeId],
             "URI requested for invalid"
         );
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, typeId.toString())): baseURI;
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, typeId.toString(),".json")): baseURI;
     }
 
 

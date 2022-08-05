@@ -5,12 +5,13 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 interface BurnFunction {
     function BurnInVariaNFT(address burnTokenAddress, uint256 burnValue) external;
 }
 
-contract InVariaStaking is Ownable, ReentrancyGuard {
+contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     BurnFunction public InVariaNFTBurn;
     IERC1155 public InVariaNFT;
     IERC20 public USDC;
@@ -42,8 +43,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
     mapping(address => NftBalance) public nftBalance;
     mapping(address => uint256) public ClaimAmount;
 
-    uint256 public AprByMin = 1200 * 1e6;
-    uint256 private BurnReturn = 10000 * 1e6;
+    uint256 public AprByMin = 1200 * 1e6 wei;
+    uint256 private BurnReturn = 10000 * 1e6 wei;
     uint256 public YearInSeconds = 31536000;
 
     constructor(address inVaria, address usdc) {
@@ -52,7 +53,6 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
         USDC = IERC20(usdc);
     }
 
-    //view function
     function USDC_Balance() public view returns (uint256) {
         return USDC.balanceOf(address(this));
     }
@@ -78,6 +78,7 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
         require(bal > 0, "Can't stake zero");
 
         InVariaNFT.safeTransferFrom(msg.sender, address(this), 1, bal, "");
+
         uint256 startTime = block.timestamp;
         stakingInfo[msg.sender].push(StakingInfo(bal, bal, startTime, startTime, false));
         nftBalance[msg.sender].stakingAmount += bal;
@@ -89,19 +90,17 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
         if (customerBalance.burnableAmount == 0) {
             burningInfo[stakingAddress].push(BurningInfo(bal, bal, locktime, false));
             customerBalance.burnableAmount = bal;
-        } else if (customerBalance.stakingAmount > 
+        } else if (customerBalance.stakingAmount >
             customerBalance.burnableAmount) {
-            uint256 burnableBalance = 
-                customerBalance.stakingAmount - 
+            uint256 burnableBalance =
+                customerBalance.stakingAmount -
                 customerBalance.burnableAmount;
-
             burningInfo[stakingAddress].push(BurningInfo(burnableBalance, burnableBalance, locktime, false));
             customerBalance.burnableAmount += burnableBalance;
         }
     }
 
     function unStake(uint256 unstakeAmount) external nonReentrant {
-        require(unstakeAmount > 0, "Invalid unstake amount");
         require(nftBalance[msg.sender].stakingAmount >= unstakeAmount, "You don't have enough staking NFTs");
         uint256 leftToUnstakeAmount = unstakeAmount;
         uint256 unstakeTime = block.timestamp;
@@ -122,7 +121,7 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
             }
             stakeRecord.unstaketime = unstakeTime;
         }
-        
+
         nftBalance[msg.sender].stakingAmount -= unstakeAmount;
         InVariaNFT.safeTransferFrom(address(this), msg.sender, 1, unstakeAmount, "");
     }
@@ -143,7 +142,6 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
     }
 
     function BurnNFT(uint256 burnAmount) external {
-        require(burnAmount > 0, "Invalid input balance");
         require(InVariaNFT.balanceOf(msg.sender, 1) >= burnAmount, "Invalid input balance");
         uint256 leftToBurnAmount = burnAmount;
 
@@ -168,10 +166,10 @@ contract InVariaStaking is Ownable, ReentrancyGuard {
         USDC.transfer(msg.sender, BurnReturn * burnAmount);
     }
 
-    function StakingReward_Balance(address stakingAddress) 
-        public 
-        view 
-        returns (uint256) 
+    function StakingReward_Balance(address stakingAddress)
+        public
+        view
+        returns (uint256)
     {
         uint256 balance = 0;
 
