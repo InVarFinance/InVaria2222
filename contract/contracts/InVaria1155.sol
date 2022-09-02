@@ -14,9 +14,9 @@ contract InVaria is ERC1155, Ownable {
     string private baseURI;
     //set return baseURI ID
 
-    uint256 private TotalSupply = 2000;
-    uint256 private Supply = 100;
-    uint256 public SellingPrice = 10000 * 1e6;
+    uint256 private TotalSupply = 10000;
+    uint256 private Supply = 500;
+    uint256 public SellingPrice = 2000 * 1e6;
     uint256 public Sold;
 
 

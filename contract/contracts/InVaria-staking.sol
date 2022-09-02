@@ -16,7 +16,9 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     IERC1155 public InVariaNFT;
     IERC20 public USDC;
 
-    address public WithDrawAddress = 0xAcB683ba69202c5ae6a3B9b9b191075295b1c41C;
+    address public constant WithDrawAddress = 0xAcB683ba69202c5ae6a3B9b9b191075295b1c41C;
+    address public constant inVaria = 0x502818ec5767570F7fdEe5a568443dc792c4496b;
+    address public constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     struct StakingInfo {
         uint256 stakeNFTamount;
@@ -43,11 +45,14 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     mapping(address => NftBalance) public nftBalance;
     mapping(address => uint256) public ClaimAmount;
 
-    uint256 public AprByMin = 1200 * 1e6 wei;
-    uint256 private BurnReturn = 10000 * 1e6 wei;
+    uint256 private AprByMin = 240 * 1e6 wei;
+    uint256 private BurnReturn = 2000 * 1e6 wei;
     uint256 public YearInSeconds = 31536000;
 
-    constructor(address inVaria, address usdc) {
+    event stakeInfo(address indexed user,uint256 stakeTime , uint256 amount , uint256 burnTime);
+    event burn(address indexed user,uint256 amount,uint256 burntime);
+
+    constructor() {
         InVariaNFT = IERC1155(inVaria);
         InVariaNFTBurn = BurnFunction(inVaria);
         USDC = IERC20(usdc);
@@ -58,14 +63,9 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     }
 
     // only Owner
-    function setAddress(address inVaria, address usdc) external onlyOwner {
-        InVariaNFTBurn = BurnFunction(inVaria);
-        InVariaNFT = IERC1155(inVaria);
-        USDC = IERC20(usdc);
-    }
 
     function withDrawUSDC(uint256 bal) external onlyOwner {
-        USDC.transfer(owner(), bal * 1e6);
+        USDC.transfer(WithDrawAddress, bal * 1e6);
     }
 
     //execute function
@@ -83,6 +83,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
         stakingInfo[msg.sender].push(StakingInfo(bal, bal, startTime, startTime, false));
         nftBalance[msg.sender].stakingAmount += bal;
         updateBurningInfo(bal, startTime + YearInSeconds, msg.sender, nftBalance[msg.sender]);
+
+        emit stakeInfo(msg.sender,block.timestamp , bal , startTime + YearInSeconds);
     }
 
     function updateBurningInfo(uint256 bal, uint256 locktime,
@@ -164,6 +166,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
         nftBalance[msg.sender].burnableAmount -= burnAmount;
         InVariaNFTBurn.BurnInVariaNFT(msg.sender, burnAmount);
         USDC.transfer(msg.sender, BurnReturn * burnAmount);
+
+        emit burn(msg.sender,burnAmount,block.timestamp);
     }
 
     function StakingReward_Balance(address stakingAddress)
@@ -188,5 +192,19 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     function CheckClaimValue(address user) public view returns (uint256) {
         uint256 claimAmount = StakingReward_Balance(user) + ClaimAmount[user];
         return claimAmount;
+    }
+
+    function BurnNftInfo(address user)public view returns(uint256){
+
+        uint256 Burnable = 0;
+        for (uint256 i = 0; i < burningInfo[user].length; i++) {
+
+            if(burningInfo[user][i].locktime <= block.timestamp){
+                Burnable += burningInfo[user][i].leftToBurnNFTamount;
+            }
+
+        }
+
+        return Burnable;
     }
 }
