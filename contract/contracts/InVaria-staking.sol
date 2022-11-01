@@ -50,6 +50,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
     uint256 public YearInSeconds = 31536000;
 
     event stakeInfo(address indexed user,uint256 stakeTime , uint256 amount , uint256 burnTime);
+    event unStakeInfo(address indexed user,uint256 unstakeTime,uint256 amount);
+    event WithDraw(address indexed user,uint256 withdrawTime,uint256 amount);
     event burn(address indexed user,uint256 amount,uint256 burntime);
 
     constructor() {
@@ -124,6 +126,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
             stakeRecord.unstaketime = unstakeTime;
         }
 
+        emit unStakeInfo(msg.sender,block.timestamp,unstakeAmount);
+
         nftBalance[msg.sender].stakingAmount -= unstakeAmount;
         InVariaNFT.safeTransferFrom(address(this), msg.sender, 1, unstakeAmount, "");
     }
@@ -141,6 +145,8 @@ contract InVariaStaking is Ownable, ReentrancyGuard,ERC1155Holder {
 
         ClaimAmount[msg.sender] = 0;
         USDC.transfer(msg.sender, claimAmount);
+
+        emit WithDraw(msg.sender,block.timestamp,claimAmount);
     }
 
     function BurnNFT(uint256 burnAmount) external {
