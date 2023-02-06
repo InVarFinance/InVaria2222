@@ -3,10 +3,13 @@
 ##### - In addition, InVaria 2222 is positioned as an experiment flagship of InVar Finance.
 
 
-## Concept of InVaria 2222 
+### Concept of InVaria 2222 
 - The reason of constructing InVaria 2222 is that we saw the vulnerability of most of crypto project, because they built narrative and project based heavily on community and tokenomic above weak value support. High asset correlation, high possibility of malicious behaviors, high reaction to traditional economy. It’s hard to imagine how blockchain and cryptocurrency could go mainstream. Therefore, InVar set up a plan and fund to acquire hard resources, and deal with regulation, just for riding the trend in long-term perspective. 
 - Infrastructure of tokenization is defined as flagship product of InVar Finance, which named InVaria 2222. The main reason of why we choose to develop tokenization as foundation is we strongly believe crypto ecosystem needs another pipeline in real world to its own good. Moreover, InVar is inspired by the concept of “Hyperstructure” from Zora Founder- Jacob, and many of fail cases in DeFi, stablecoin areas.
 
+
+### Audit
+- First RWA NFT: [Amwaj20](https://github.com/HashEx/public_audits/blob/master/InVaria2222/InVaria2222.pdf)
 
 ## Research More...
 [<img src="https://img.shields.io/badge/INVAR FINANCE-6D8299?style=for-the-badge&logo=&logoColor=white">](https://invar.finance/)
