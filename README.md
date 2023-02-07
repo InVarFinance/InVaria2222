@@ -1,6 +1,5 @@
 # InVaria 2222
-##### - InVaria 2222 is a RWA-based, tokenization world with the goal of constructing connections between real-world and digital economies. 
-##### - In addition, InVaria 2222 is positioned as an experiment flagship of InVar Finance.
+InVaria 2222 is a RWA-based, tokenization world with the goal of constructing connections between real-world and digital economies. 
 
 
 ### Concept of InVaria 2222 
@@ -9,8 +8,23 @@
 - InVaria2222 is positioned in RWA tokenization world, and planned to be open-platform to everyone to utilize their valuable assets for financing, or access hard assets investment on-chain for multiple scenarios, such as asset management, portfolio optimization, etc.
 
 
-### Audit
-- First RWA NFT: [Amwaj20](https://github.com/HashEx/public_audits/blob/master/InVaria2222/InVaria2222.pdf)
+
+### Prouduct online
+#### MVP - First RWA NFT - [Amwaj20](https://app.invar.finance/tw/propertyinfo)
+1. It is a RWA NFT based on the ERC-1155 standard and Ethereum blockchain. 
+2. The minting price of each Amwaj20 is 2,00USDC, and you can receive 12% APR interest calculated in seconds at any time after staking.
+3. [Audit](https://github.com/HashEx/public_audits/blob/master/InVaria2222/InVaria2222.pdf) by HashEx
+
+
+#### 3 Steps to Mint First RWA NFT -  Amwaj20 and earns a stable 12% APR interest
+1. Connect to Wallet, and Switch to Etherum Mainnet.
+2. Approve more than 2,000 USDC and ensure enough ETH to pay gas fee.
+3. Mint your Amwaj20 NFT(s) and visit the [Dashbaord](https://app.invar.finance/dashboard) to stake your Amwaj20 NFT(s). After the stake is successful, you will start to calculate the stable 12% APR interest income calculated in seconds.
+> - Interest calculation is only during the staking period. 
+> - The lock-up period is one year after the staking.
+
+
+
 
 
 
