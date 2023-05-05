@@ -1,10 +1,10 @@
-# InVaria 2222
-InVaria 2222 is a RWA-based, tokenization world with the goal of constructing connections between real-world and digital economies. 
+# InVaria2222
+InVaria2222 is a RWA-based, tokenization world with the goal of constructing connections between real-world and digital economies. 
 
 
-### Concept of InVaria 2222 
-- The reason of constructing InVaria 2222 is that we saw the vulnerability of most of crypto project, because they built narrative and project based heavily on community and tokenomic above weak value support. High asset correlation, high possibility of malicious behaviors, high reaction to traditional economy. It’s hard to imagine how blockchain and cryptocurrency could go mainstream. Therefore, InVar set up a plan and fund to acquire hard resources, and deal with regulation, just for riding the trend in long-term perspective. 
-- Infrastructure of tokenization is defined as flagship product of InVar Finance, which named InVaria 2222. The main reason of why we choose to develop tokenization as foundation is we strongly believe crypto ecosystem needs another pipeline in real world to its own good. Moreover, InVar is inspired by the concept of “Hyperstructure” from Zora Founder- Jacob, and many of fail cases in DeFi, stablecoin areas.
+### Concept of InVaria2222 
+- The reason of constructing InVaria2222 is that we saw the vulnerability of most of crypto project, because they built narrative and project based heavily on community and tokenomic above weak value support. High asset correlation, high possibility of malicious behaviors, high reaction to traditional economy. It’s hard to imagine how blockchain and cryptocurrency could go mainstream. Therefore, InVar Finance set up a plan and fund to acquire hard resources, and deal with regulation, just for riding the trend in long-term perspective. 
+- Infrastructure of tokenization is defined as flagship product of InVar Finance, which named InVaria2222. The main reason of why we choose to develop tokenization as foundation is we strongly believe crypto ecosystem needs another pipeline in real world to its own good. Moreover, InVar Finance is inspired by the concept of “Hyperstructure” from Zora Founder- Jacob, and many of fail cases in DeFi, stablecoin areas.
 - InVaria2222 is positioned in RWA tokenization world, and planned to be open-platform to everyone to utilize their valuable assets for financing, or access hard assets investment on-chain for multiple scenarios, such as asset management, portfolio optimization, etc.
 
 
